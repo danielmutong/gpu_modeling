@@ -20,6 +20,8 @@ public:
     void set_tag(uint);
     uint get_data();
     void set_data(uint);
+    void set_dirty(uint);
+    uint get_dirty();
 };
 class cacheblock
 {

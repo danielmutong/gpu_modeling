@@ -15,6 +15,15 @@ void cacheset::set_tag(uint t)
     tag = t;
 }
 
+void cacheset::set_dirty(uint d)
+{
+    dirty = d;
+}
+
+uint cacheset::get_dirty()
+{
+    return dirty;
+}
 void cacheset::set_data(uint d) 
 {
     data = d;
@@ -27,7 +36,7 @@ cacheset::cacheset()
 {
     data = 0;
     tag = 0;
-    dirty = 1;
+    dirty = 0;
 }
 
 void cacheblock::set_index(int i)
@@ -112,12 +121,24 @@ uint cache::cache_read(uint addr)
         uint rdata = read_mem(addr_tag);
         if (mem[addr_index].get_lru() == 0) 
         {
+            if (mem[addr_index].cache_set[0].get_dirty() == 1)
+            {
+                cout << "replacing data dirty, write back" << endl;
+                writethrough(mem[addr_index].cache_set[0].get_tag(), mem[addr_index].cache_set[0].get_data());
+                mem[addr_index].cache_set[0].set_dirty(0);
+            }
             mem[addr_index].cache_set[0].set_tag(addr_tag);
             mem[addr_index].cache_set[0].set_data(rdata);
             mem[addr_index].set_lru(1);
         }
         else 
         {
+            if (mem[addr_index].cache_set[1].get_dirty() == 1)
+            {
+                cout << "replacing data dirty, write back" << endl;
+                writethrough(mem[addr_index].cache_set[1].get_tag(), mem[addr_index].cache_set[1].get_data());
+                mem[addr_index].cache_set[1].set_dirty(0);
+            }
             mem[addr_index].cache_set[1].set_tag(addr_tag);
             mem[addr_index].cache_set[1].set_data(rdata);
             mem[addr_index].set_lru(0);
@@ -136,13 +157,15 @@ void cache::cache_write(uint addr, uint wdata)
     {
         mem[addr_index].set_lru(1);
         mem[addr_index].cache_set[0].set_data(wdata);
-        writethrough(addr_tag, wdata);
+        mem[addr_index].cache_set[0].set_dirty(1);
+        //writethrough(addr_tag, wdata);
     }
     else if (addr_tag == mem[addr_index].cache_set[1].get_tag())
     {
         mem[addr_index].set_lru(0);
         mem[addr_index].cache_set[1].set_data(wdata);
-        writethrough(addr_tag, wdata);
+        mem[addr_index].cache_set[1].set_dirty(1);
+        //writethrough(addr_tag, wdata);
     }
     else
     {
@@ -150,17 +173,28 @@ void cache::cache_write(uint addr, uint wdata)
         uint garbage = read_mem(addr_tag);
         if (mem[addr_index].get_lru() == 0)
         {
+            if (mem[addr_index].cache_set[0].get_dirty() == 1) 
+            {
+                cout << "replacing data dirty, write back" << endl;
+                writethrough(mem[addr_index].cache_set[0].get_tag(), mem[addr_index].cache_set[0].get_data());
+            }
             mem[addr_index].cache_set[0].set_tag(addr_tag);
             mem[addr_index].cache_set[0].set_data(wdata);
+            mem[addr_index].cache_set[0].set_dirty(1);
             mem[addr_index].set_lru(1);
-            writethrough(addr_tag, wdata);
+            
         }
         else
         {
+            if (mem[addr_index].cache_set[1].get_dirty() == 1)
+            {
+                cout << "replacing data dirty, write back" << endl;
+                writethrough(mem[addr_index].cache_set[1].get_tag(), mem[addr_index].cache_set[1].get_data());
+            }
             mem[addr_index].cache_set[1].set_tag(addr_tag);
             mem[addr_index].cache_set[1].set_data(wdata);
+            mem[addr_index].cache_set[1].set_dirty(1);
             mem[addr_index].set_lru(0);
-            writethrough(addr_tag, wdata);
         }
     }
 }
