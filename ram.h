@@ -41,8 +41,10 @@ public:
         unsigned int wid = trans.get_streaming_width();
 
         // Obliged to implement read and write commands
-        // if (cmd == tlm::TLM_READ_COMMAND)
-        //    memcpy(ptr, &mem[adr], len);
+        if (cmd == tlm::TLM_READ_COMMAND)
+        {
+            *(uint *)ptr = read_ram(adr);
+        }
         if (cmd == tlm::TLM_WRITE_COMMAND)
         {
             cout << "ram addr: " << adr << " data: " << *(uint *)ptr << endl;

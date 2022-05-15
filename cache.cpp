@@ -67,6 +67,23 @@ void cacheblock::print_cacheblock()
 uint cache::read_mem(uint raddr) 
 {
     //return B.read_ram(raddr);
+    uint rdata;
+    tlm::tlm_generic_payload *trans = new tlm::tlm_generic_payload;
+    sc_time delay = sc_time(10, SC_NS);
+    trans->set_command(tlm::TLM_READ_COMMAND);
+    trans->set_address(raddr);
+    trans->set_data_ptr(reinterpret_cast<unsigned char *>(&rdata));
+    trans->set_data_length(4);
+    trans->set_streaming_width(4);
+    trans->set_dmi_allowed(false);                            // Mandatory initial value
+    trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE); // Mandatory initial value
+
+    socket->b_transport(*trans, delay); // Blocking transport call
+    if (trans->is_response_error())
+        SC_REPORT_ERROR("TLM-2", "Response error from b_transport");
+
+    cout << "data: " << rdata << " read at: " << raddr << " at " << sc_time_stamp() << endl;
+    return rdata;
 }
 
 void cache::writethrough(uint waddr, uint wdata)
@@ -116,6 +133,7 @@ uint cache::cache_read(uint addr)
     }
     else
     {
+        cout << "read cache miss" << endl;
         uint rdata = read_mem(addr_tag);
         if (mem[addr_index].get_lru() == 0) 
         {
@@ -154,7 +172,7 @@ void cache::cache_write(uint addr, uint wdata)
     else
     {
         cout << "cache write miss" << endl;
-        uint garbage = read_mem(addr_tag);
+        //uint garbage = read_mem(addr_tag);
         if (mem[addr_index].get_lru() == 0)
         {
             mem[addr_index].cache_set[0].set_tag(addr_tag);
@@ -181,4 +199,6 @@ void cache::thread_process()
     cache_write(0b1110100000010, 555);
     print_cache();
     cout << "\n \n";
+    cout << cache_read((0b100000001)) << endl;
+    cout << cache_read((0b1000000001)) << endl;
 }
