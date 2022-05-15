@@ -1,10 +1,18 @@
 #include "ram.h"
 #include "cache.h"
-extern ram B;
+
+cacheset::cacheset()
+{
+    data = 0;
+    tag = 0;
+    dirty = 1;
+}
+
 void cacheset::print_cacheset()
 {
     cout << " tag: " << tag << " data: " << data << " dirty " << dirty << " " ;
 }
+
 uint cacheset::get_tag()
 {
     return tag;
@@ -19,15 +27,16 @@ void cacheset::set_data(uint d)
 {
     data = d;
 } 
+
 uint cacheset::get_data() 
 {
     return data;
 }
-cacheset::cacheset()
+
+cacheblock::cacheblock()
 {
-    data = 0;
-    tag = 0;
-    dirty = 1;
+    index = 0;
+    lru = 0;
 }
 
 void cacheblock::set_index(int i)
@@ -44,11 +53,6 @@ uint cacheblock::get_lru()
 {
     return lru;
 }
-cacheblock::cacheblock()
-{
-    index = 0;
-    lru = 0;
-}
 
 void cacheblock::print_cacheblock()
 {
@@ -60,29 +64,32 @@ void cacheblock::print_cacheblock()
     cout << endl;
 }
 
-
-
-cache::cache()
+uint Initiator::read_mem(uint raddr) 
 {
-    for (int i = 0; i < CACHE_LINES; i++) 
-    {
-        mem[i].set_index(i);
-        mem[i].cache_set[0].set_tag(i);
-        mem[i].cache_set[0].set_data(i * 10);
-        mem[i].cache_set[1].set_tag(2*i);
-        mem[i].cache_set[1].set_data(2 * i * 10);
-    }
-}
-uint cache::read_mem(uint raddr) 
-{
-    return B.read_ram(raddr);
+    //return B.read_ram(raddr);
 }
 
-void cache::writethrough(uint waddr, uint wdata) 
+void Initiator::writethrough(uint waddr, uint wdata)
 {
-    B.write_ram(waddr, wdata);
+    //B.write_ram(waddr, wdata);
+    tlm::tlm_generic_payload *trans = new tlm::tlm_generic_payload;
+    sc_time delay = sc_time(10, SC_NS);
+    trans->set_command(tlm::TLM_WRITE_COMMAND);
+    trans->set_address(waddr);
+    trans->set_data_ptr(reinterpret_cast<unsigned char *>(&wdata));
+    trans->set_data_length(4);
+    trans->set_streaming_width(4);
+    trans->set_dmi_allowed(false);                            // Mandatory initial value
+    trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE); // Mandatory initial value
+
+    socket->b_transport(*trans, delay); // Blocking transport call
+    if (trans->is_response_error())
+        SC_REPORT_ERROR("TLM-2", "Response error from b_transport");
+    cout << "data: " << wdata << " written at: " << waddr << " at " << sc_time_stamp() << endl;
+    wait(delay);
 }
-void cache::print_cache()
+
+void Initiator::print_cache()
 {
     for (int i = 0; i < CACHE_LINES; i++)
     {
@@ -90,7 +97,7 @@ void cache::print_cache()
     }
 }
 
-uint cache::cache_read(uint addr)
+uint Initiator::cache_read(uint addr)
 {
     uint addr_index = addr & 0xFF;
     uint addr_tag = (addr >> 8);
@@ -126,7 +133,7 @@ uint cache::cache_read(uint addr)
     }
 }
 
-void cache::cache_write(uint addr, uint wdata) 
+void Initiator::cache_write(uint addr, uint wdata)
 {
     uint addr_index = addr & 0xFF;
     uint addr_tag = (addr >> 8);
@@ -157,6 +164,7 @@ void cache::cache_write(uint addr, uint wdata)
         }
         else
         {
+            cout << "write miss, writing to ram" << endl;
             mem[addr_index].cache_set[1].set_tag(addr_tag);
             mem[addr_index].cache_set[1].set_data(wdata);
             mem[addr_index].set_lru(0);
@@ -165,3 +173,10 @@ void cache::cache_write(uint addr, uint wdata)
     }
 }
 
+void Initiator::thread_process()
+{
+ 
+    cache_write(0b1010100000010, 999);
+    print_cache();
+    cout << "\n \n";
+}

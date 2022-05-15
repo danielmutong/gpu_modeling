@@ -1,14 +1,6 @@
 #include "ram.h"
 
-ram::ram()
-{
-    for (int i = 0; i < SIZE_OF_RAM; i++) 
-    {
-        memory[i] = 123;
-    }
-}
-
-void ram::print_ram() 
+void Memory::print_ram() 
 {
     for (int i = 0; i < SIZE_OF_RAM; i++)
     {
@@ -16,12 +8,15 @@ void ram::print_ram()
     }
 }
 
-void ram::write_ram(uint addr, uint wdata)
+void Memory::write_ram(uint addr, uint wdata)
 {
+    cout << "writing ram " << endl;
     memory[addr] = wdata;
+    print_ram();
 }
 
-uint ram::read_ram(uint raddr)
+uint Memory::read_ram(uint raddr)
 {   
     return memory[raddr];
 }
+

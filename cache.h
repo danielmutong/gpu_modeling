@@ -7,6 +7,17 @@ using namespace std;
 #define SIZE_OF_CACHE 32
 #define CACHE_LINES (SIZE_OF_CACHE / 4 / 2)
 
+#define SC_INCLUDE_DYNAMIC_PROCESSES
+
+#include "systemc"
+using namespace sc_core;
+using namespace sc_dt;
+using namespace std;
+
+#include "tlm.h"
+#include "tlm_utils/simple_initiator_socket.h"
+#include "tlm_utils/simple_target_socket.h"
+
 class cacheset
 {
     uint data;
@@ -35,12 +46,27 @@ public:
     uint get_lru();
 };
 
-class cache
+struct Initiator : sc_module
 {
     cacheblock mem[CACHE_LINES];
 
 public:
-    cache();
+    tlm_utils::simple_initiator_socket<Initiator> socket;
+
+    SC_CTOR(Initiator)
+        : socket("socket") // Construct and name socket
+    {
+        for (int i = 0; i < CACHE_LINES; i++)
+        {
+            mem[i].set_index(i);
+            mem[i].cache_set[0].set_tag(i);
+            mem[i].cache_set[0].set_data(i * 10);
+            mem[i].cache_set[1].set_tag(2 * i);
+            mem[i].cache_set[1].set_data(2 * i * 10);
+        }
+        SC_THREAD(thread_process);
+    }
+    void thread_process();
     void print_cache();
     uint cache_read(uint);
     void cache_write(uint, uint);
