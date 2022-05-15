@@ -2,6 +2,7 @@
 #define __CACHE__
 
 #include <iostream>
+#include <string>
 using namespace std;
 //#define SIZE_OF_CACHE 2048
 #define SIZE_OF_CACHE 32
@@ -12,6 +13,7 @@ class cacheset
     uint data;
     uint tag;
     uint dirty;
+    string status;
 
 public:
     cacheset();

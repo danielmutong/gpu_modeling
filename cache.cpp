@@ -32,12 +32,34 @@ uint cacheset::get_data()
 {
     return data;
 }
+/*
+uint cacheset::set_exclusive()
+{
+    status = "E";
+}
+
+uint cacheset::set_shared()
+{
+    status = "S";
+}
+uint cacheset::set_invalid()
+{
+    status = "I";
+}
+
+string cacheset::get_status()
+{
+    return status;
+}
+*/
 cacheset::cacheset()
 {
     data = 0;
     tag = 0;
     dirty = 0;
+    status = "E"
 }
+
 
 void cacheblock::set_index(int i)
 {
