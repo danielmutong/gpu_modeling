@@ -7,13 +7,13 @@ using namespace std;
 
 SC_MODULE(Top)
 {
-    Initiator *initiator;
+    cache *initiator;
     Memory *memory;
 
     SC_CTOR(Top)
     {
         // Instantiate components
-        initiator = new Initiator("initiator");
+        initiator = new cache("initiator");
         memory = new Memory("memory");
 
         // One initiator is bound directly to one target with no intervening bus

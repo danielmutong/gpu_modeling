@@ -64,12 +64,12 @@ void cacheblock::print_cacheblock()
     cout << endl;
 }
 
-uint Initiator::read_mem(uint raddr) 
+uint cache::read_mem(uint raddr) 
 {
     //return B.read_ram(raddr);
 }
 
-void Initiator::writethrough(uint waddr, uint wdata)
+void cache::writethrough(uint waddr, uint wdata)
 {
     //B.write_ram(waddr, wdata);
     tlm::tlm_generic_payload *trans = new tlm::tlm_generic_payload;
@@ -89,7 +89,7 @@ void Initiator::writethrough(uint waddr, uint wdata)
     wait(delay);
 }
 
-void Initiator::print_cache()
+void cache::print_cache()
 {
     for (int i = 0; i < CACHE_LINES; i++)
     {
@@ -97,7 +97,7 @@ void Initiator::print_cache()
     }
 }
 
-uint Initiator::cache_read(uint addr)
+uint cache::cache_read(uint addr)
 {
     uint addr_index = addr & 0xFF;
     uint addr_tag = (addr >> 8);
@@ -133,7 +133,7 @@ uint Initiator::cache_read(uint addr)
     }
 }
 
-void Initiator::cache_write(uint addr, uint wdata)
+void cache::cache_write(uint addr, uint wdata)
 {
     uint addr_index = addr & 0xFF;
     uint addr_tag = (addr >> 8);
@@ -173,10 +173,12 @@ void Initiator::cache_write(uint addr, uint wdata)
     }
 }
 
-void Initiator::thread_process()
+void cache::thread_process()
 {
  
     cache_write(0b1010100000010, 999);
+    print_cache();
+    cache_write(0b1110100000010, 555);
     print_cache();
     cout << "\n \n";
 }

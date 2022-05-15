@@ -46,23 +46,25 @@ public:
     uint get_lru();
 };
 
-struct Initiator : sc_module
+struct cache : sc_module
 {
     cacheblock mem[CACHE_LINES];
 
 public:
-    tlm_utils::simple_initiator_socket<Initiator> socket;
+    tlm_utils::simple_initiator_socket<cache> socket;
 
-    SC_CTOR(Initiator)
+    SC_CTOR(cache)
         : socket("socket") // Construct and name socket
     {
+        for (int i = 0; i < CACHE_LINES; i++){
+            mem[i].set_index(i);
+        }
         for (int i = 0; i < CACHE_LINES; i++)
         {
-            mem[i].set_index(i);
             mem[i].cache_set[0].set_tag(i);
-            mem[i].cache_set[0].set_data(i * 10);
-            mem[i].cache_set[1].set_tag(2 * i);
-            mem[i].cache_set[1].set_data(2 * i * 10);
+            mem[i].cache_set[0].set_data(i);
+            mem[i].cache_set[1].set_tag(i * 10);
+            mem[i].cache_set[1].set_data(i * 10);
         }
         SC_THREAD(thread_process);
     }
