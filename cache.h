@@ -31,6 +31,8 @@ public:
     void set_tag(uint);
     uint get_data();
     void set_data(uint);
+    void set_dirty(uint);
+    uint get_dirty();
 };
 class cacheblock
 {
@@ -46,16 +48,18 @@ public:
     uint get_lru();
 };
 
-struct cache : sc_module
+struct Cache : sc_module
 {
     cacheblock mem[CACHE_LINES];
 
 public:
-    tlm_utils::simple_initiator_socket<cache> socket;
+    tlm_utils::simple_initiator_socket<Cache> initiator_socket;
+    tlm_utils::simple_target_socket<Cache> target_socket;
 
-    SC_CTOR(cache)
-        : socket("socket") // Construct and name socket
+    SC_CTOR(Cache)
+        : target_socket("socket") // Construct and name socket
     {
+        target_socket.register_b_transport(this, &Cache::b_transport);
         for (int i = 0; i < CACHE_LINES; i++){
             mem[i].set_index(i);
         }
@@ -63,17 +67,32 @@ public:
         {
             mem[i].cache_set[0].set_tag(i);
             mem[i].cache_set[0].set_data(i);
+            mem[i].cache_set[0].set_dirty(1);
             mem[i].cache_set[1].set_tag(i * 10);
             mem[i].cache_set[1].set_data(i * 10);
+            mem[i].cache_set[1].set_dirty(1);
         }
-        SC_THREAD(thread_process);
+        print_cache();
     }
-    void thread_process();
+    virtual void b_transport(tlm::tlm_generic_payload &trans, sc_time &delay)
+    {
+        cout << "new transaction received at cache" << endl;
+        unsigned char *ptr = trans.get_data_ptr();
+        tlm::tlm_command cmd = trans.get_command();
+        if (cmd == tlm::TLM_READ_COMMAND) {
+            *(uint *)ptr = cache_read(trans.get_address(), trans);
+        }
+        else {
+            cache_write(trans.get_address(), *(uint *)ptr, trans);
+        }
+        cout << "time cache process done: " << sc_time_stamp() << endl;
+    }
     void print_cache();
-    uint cache_read(uint);
-    void cache_write(uint, uint);
-    void writethrough(uint, uint);
-    uint read_mem(uint);
+    uint cache_read(uint, tlm::tlm_generic_payload &trans);
+    void cache_write(uint, uint, tlm::tlm_generic_payload &trans);
+    void writethrough(uint, uint, tlm::tlm_generic_payload &trans);
+    uint read_mem(uint, tlm::tlm_generic_payload &trans);
+    uint get_value(uint index0, uint index1);
 };
 
 #endif
