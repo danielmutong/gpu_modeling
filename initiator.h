@@ -15,11 +15,16 @@ using namespace std;
 
 #include <assert.h>
 extern struct Top top;
+
+#define NUM_CORES 2
+
 // Initiator module generating generic payload transactions
+
 struct Initiator: sc_module
 {
   // TLM-2 socket, defaults to 32-bits wide, base protocol
   tlm_utils::simple_initiator_socket<Initiator> socket;
+  int i;
 
   SC_CTOR(Initiator)
   : socket("socket")  // Construct and name socket
@@ -29,6 +34,7 @@ struct Initiator: sc_module
 
   void thread_process()
   {
+    if()
     unit_test();
   }
 

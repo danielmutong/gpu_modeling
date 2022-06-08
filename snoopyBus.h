@@ -18,17 +18,26 @@ using namespace std;
 #include "tlm_utils/simple_initiator_socket.h"
 #include "tlm_utils/simple_target_socket.h"
 
+template <unsigned int NUM_CACHES>
 struct SnoopyBus : sc_module
 {
 public:
     tlm_utils::simple_initiator_socket<SnoopyBus> initiator_socket;
-    tlm_utils::simple_target_socket<SnoopyBus> target_socket;
+    tlm_utils::simple_target_socket<SnoopyBus>* target_socket[NUM_CACHES];
 
     SC_CTOR(SnoopyBus)
-        : target_socket("socket") // Construct and name socket
     {
-        target_socket.register_b_transport(this, &SnoopyBus::b_transport);
-        cout << "snoopybus ctor called" << endl;
+        for (unsigned int i = 0; i < NUM_CACHES; i++)
+        {
+            char txt[20];
+            sprintf(txt, "socket_%d", i);
+            target_socket[i] = new tlm_utils::simple_target_socket<SnoopyBus>(txt);
+        }
+
+        for (int i = 0; i < NUM_CACHES; i++) 
+        {
+            target_socket[i]->register_b_transport(this, &SnoopyBus::b_transport);
+        }
     }
 
     virtual void b_transport(tlm::tlm_generic_payload &trans, sc_time &delay)
