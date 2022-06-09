@@ -2,6 +2,7 @@
 
 #include "ram.h"
 #include "cache.h"
+#include "extension.h"
 sc_time delay = sc_time(10, SC_NS);
 cacheset::cacheset()
 {
@@ -78,6 +79,18 @@ uint Cache::read_mem(uint raddr, tlm::tlm_generic_payload &trans)
 {
     if (DEBUG) cout << "cache::readmem begin" << endl;
 
+    // set extension
+    ID_extension *id_extension = new ID_extension;
+    id_extension->transaction_id = 0;
+    trans.set_extension(id_extension);
+    // end set extension
+    ID_extension *id2;
+    trans.get_extension(id2);
+    cout << "got extension" << endl;
+    cout << "trans extension " << id2->transaction_id << endl;
+    cout << "not broken" << endl;
+
+
     initiator_socket->b_transport(trans, delay); // Blocking transport call
     wait(delay);
     unsigned char *ptr = trans.get_data_ptr();
@@ -103,6 +116,14 @@ void Cache::writethrough(uint waddr, uint wdata, tlm::tlm_generic_payload &trans
     trans->set_byte_enable_ptr(0);                            // 0 indicates unused
     trans->set_dmi_allowed(false);                            // Mandatory initial value
     trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE); // Mandatory initial value
+
+
+    //set extension
+    ID_extension * id_extension = new ID_extension;
+    id_extension->transaction_id = 69;
+    trans->set_extension(id_extension);
+    //need to set extension whenever sending to snoopy
+    
     initiator_socket->b_transport(*trans, delay);
     cout << "data: " << wdata << " written at: " << waddr << " at " << sc_time_stamp() << endl;
     wait(delay);

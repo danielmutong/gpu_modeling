@@ -8,7 +8,7 @@ int sc_main(int argc, char *argv[])
     {
         char txt[20];
         sprintf(txt, "socket_%d", i);
-        initiator[i] = new Initiator("txt");
+        initiator[i] = new Initiator("txt" ,i);
         initiator[i]->socket.bind(top.cache[i]->target_socket);
     }    
     

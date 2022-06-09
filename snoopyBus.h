@@ -17,6 +17,7 @@ using namespace std;
 #include "tlm.h"
 #include "tlm_utils/simple_initiator_socket.h"
 #include "tlm_utils/simple_target_socket.h"
+#include "extension.h"
 
 template <unsigned int NUM_CACHES>
 struct SnoopyBus : sc_module
@@ -47,6 +48,12 @@ public:
         tlm::tlm_command cmd = trans.get_command();
         uint addr = trans.get_address();
         cout << "new transaction received at snoopybus " << cmd << " addr: " << addr << endl;
+        
+        //get extension
+        ID_extension *id_extension;
+        trans.get_extension(id_extension);
+        int x = id_extension->transaction_id;
+        cout << "id extension " << id_extension->transaction_id << endl;
         initiator_socket->b_transport(trans, delay);
     }
 };
