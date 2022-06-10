@@ -63,7 +63,9 @@ public:
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         }
     }
-    void sm();
+    string state;
+    void sm(string);
+
 };
 
 #endif
