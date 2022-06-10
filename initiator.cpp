@@ -151,6 +151,7 @@ void Initiator::unit_test0()
 
 void Initiator::unit_test1()
 {
+     /*
      wait(100,SC_NS);
      // TLM-2 generic payload transaction, reused across calls to b_transport
      tlm::tlm_generic_payload *trans = new tlm::tlm_generic_payload;
@@ -181,4 +182,5 @@ void Initiator::unit_test1()
           << " delay = " << delay << endl;
 
      wait(delay);
+     */
 }

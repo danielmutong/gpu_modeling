@@ -24,7 +24,7 @@ struct ID_extension: tlm::tlm_extension<ID_extension>
     virtual void copy_from(tlm_extension_base const & ext) {
         transaction_id = static_cast<ID_extension const &>(ext).transaction_id;
     }
-    unsigned int transaction_id;
+    unsigned int transaction_id = 0;
 };
 
 #endif

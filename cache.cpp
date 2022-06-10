@@ -81,15 +81,9 @@ uint Cache::read_mem(uint raddr, tlm::tlm_generic_payload &trans)
 
     // set extension
     ID_extension *id_extension = new ID_extension;
-    id_extension->transaction_id = 0;
+    id_extension->transaction_id = 1;
     trans.set_extension(id_extension);
     // end set extension
-    ID_extension *id2;
-    trans.get_extension(id2);
-    cout << "got extension" << endl;
-    cout << "trans extension " << id2->transaction_id << endl;
-    cout << "not broken" << endl;
-
 
     initiator_socket->b_transport(trans, delay); // Blocking transport call
     wait(delay);
@@ -120,7 +114,7 @@ void Cache::writethrough(uint waddr, uint wdata, tlm::tlm_generic_payload &trans
 
     //set extension
     ID_extension * id_extension = new ID_extension;
-    id_extension->transaction_id = 69;
+    id_extension->transaction_id = 1;
     trans->set_extension(id_extension);
     //need to set extension whenever sending to snoopy
     
@@ -149,6 +143,15 @@ uint Cache::cache_read(uint addr, tlm::tlm_generic_payload &trans)
 
     if (addr_tag == mem[addr_index].cache_set[0].get_tag()) 
     {
+        // let bus know of local read
+        // set extension
+        ID_extension *id_extension = new ID_extension;
+        id_extension->transaction_id = 0;
+        trans.set_extension(id_extension);
+        // need to set extension whenever sending to snoopy
+        initiator_socket->b_transport(trans, delay); // Blocking transport call
+        wait(delay);
+
         mem[addr_index].set_lru(1);
 
         if (DEBUG)
@@ -159,6 +162,15 @@ uint Cache::cache_read(uint addr, tlm::tlm_generic_payload &trans)
     }
     else if (addr_tag == mem[addr_index].cache_set[1].get_tag()) 
     {
+        // let bus know of local read
+        // set extension
+        ID_extension *id_extension = new ID_extension;
+        id_extension->transaction_id = 0;
+        trans.set_extension(id_extension);
+        // need to set extension whenever sending to snoopy
+        initiator_socket->b_transport(trans, delay); // Blocking transport call
+        wait(delay);
+
         mem[addr_index].set_lru(0);
 
         if (DEBUG)
@@ -216,6 +228,15 @@ void Cache::cache_write(uint addr, uint wdata, tlm::tlm_generic_payload &trans)
 
     if (addr_tag == mem[addr_index].cache_set[0].get_tag())
     {
+        // let bus know of local read
+        // set extension
+        ID_extension *id_extension = new ID_extension;
+        id_extension->transaction_id = 0;
+        trans.set_extension(id_extension);
+        // need to set extension whenever sending to snoopy
+        initiator_socket->b_transport(trans, delay); // Blocking transport call
+        wait(delay);
+
         mem[addr_index].set_lru(1);
         mem[addr_index].cache_set[0].set_data(wdata);
         mem[addr_index].cache_set[0].set_dirty(1);
@@ -224,6 +245,15 @@ void Cache::cache_write(uint addr, uint wdata, tlm::tlm_generic_payload &trans)
     }
     else if (addr_tag == mem[addr_index].cache_set[1].get_tag())
     {
+        // let bus know of local read
+        // set extension
+        ID_extension *id_extension = new ID_extension;
+        id_extension->transaction_id = 0;
+        trans.set_extension(id_extension);
+        // need to set extension whenever sending to snoopy
+        initiator_socket->b_transport(trans, delay); // Blocking transport call
+        wait(delay);
+
         mem[addr_index].set_lru(0);
         mem[addr_index].cache_set[1].set_data(wdata);
         mem[addr_index].cache_set[1].set_dirty(1);
@@ -242,6 +272,17 @@ void Cache::cache_write(uint addr, uint wdata, tlm::tlm_generic_payload &trans)
                 uint addr = addr_index + (addr_tag << 8);
                 writethrough(addr, mem[addr_index].cache_set[0].get_data(), trans);
             }
+            else
+            {
+                // let bus know of local read
+                // set extension
+                ID_extension *id_extension = new ID_extension;
+                id_extension->transaction_id = 0;
+                trans.set_extension(id_extension);
+                // need to set extension whenever sending to snoopy
+                initiator_socket->b_transport(trans, delay); // Blocking transport call
+                wait(delay);
+            }
             mem[addr_index].cache_set[0].set_tag(addr_tag);
             mem[addr_index].cache_set[0].set_data(wdata);
             mem[addr_index].cache_set[0].set_dirty(1);
@@ -256,6 +297,17 @@ void Cache::cache_write(uint addr, uint wdata, tlm::tlm_generic_payload &trans)
                 uint addr_tag = mem[addr_index].cache_set[1].get_tag();
                 uint addr = addr_index + (addr_tag << 8);
                 writethrough(addr, mem[addr_index].cache_set[1].get_data(), trans);
+            }
+            else
+            {
+                // let bus know of local read
+                // set extension
+                ID_extension *id_extension = new ID_extension;
+                id_extension->transaction_id = 0;
+                trans.set_extension(id_extension);
+                // need to set extension whenever sending to snoopy
+                initiator_socket->b_transport(trans, delay); // Blocking transport call
+                wait(delay);
             }
             mem[addr_index].cache_set[1].set_tag(addr_tag);
             mem[addr_index].cache_set[1].set_data(wdata);

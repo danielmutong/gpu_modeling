@@ -12,6 +12,7 @@ using namespace std;
 #include "ram.h"
 #include "cache.h"
 #include "sc.h"
+#include "extension.h"
 
 #include <assert.h>
 extern struct Top top;

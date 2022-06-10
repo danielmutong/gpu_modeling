@@ -52,10 +52,18 @@ public:
         //get extension
         ID_extension *id_extension;
         trans.get_extension(id_extension);
-        int x = id_extension->transaction_id;
-        cout << "id extension " << id_extension->transaction_id << endl;
-        initiator_socket->b_transport(trans, delay);
+        //check if bus transaction or local transaction
+        if(id_extension->transaction_id == 1)
+        {
+            cout << "id extension " << id_extension->transaction_id << endl;
+            initiator_socket->b_transport(trans, delay);
+        }
+        else
+        {
+            trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        }
     }
+    void sm();
 };
 
 #endif
